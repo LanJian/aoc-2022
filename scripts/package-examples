@@ -1,0 +1,42 @@
+#!/bin/sh
+set -e
+# find all examples names
+examples=$(find examples -maxdepth 1 -type f -exec basename {} '.rs' \;)
+
+# make new location
+target="aoc-2022-lanjian"
+archive="${target}.tar.gz"
+mkdir -p $target
+
+# remove old tar.gz
+if [ -f $archive ]; then
+  echo "Removing previous archive"
+  rm $archive
+fi
+
+# build release examples
+cargo build --release --examples
+
+# copy bins to location
+for f in $examples
+do
+  echo "Copying ${f}"
+  cp "target/release/examples/${f}" "${target}/"
+done
+
+echo "Generating readme"
+cat > "${target}/README.md" <<- "EOM"
+## To run
+```
+AOC_INPUT=<PATH> ./BIN_NAME
+```
+Where `AOC_INPUT` is a path to the input file for that specific problem
+EOM
+
+# tar bins
+echo "Making tarball"
+tar -czvf $archive $target
+
+# cleanup
+echo "Removing working directory"
+rm -rf $target
