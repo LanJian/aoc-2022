@@ -1,4 +1,7 @@
-use std::{convert::TryFrom, ops::{Index, IndexMut}};
+use std::{
+    convert::TryFrom,
+    ops::{Index, IndexMut},
+};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Coordinate(i64, i64);
@@ -65,12 +68,7 @@ impl Coordinate {
     }
 
     pub fn cardinal_neighbours(&self) -> [Self; 4] {
-        [
-            self.north(),
-            self.south(),
-            self.east(),
-            self.west(),
-        ]
+        [self.north(), self.south(), self.east(), self.west()]
     }
 
     pub fn ordinal_neighbours(&self) -> [Self; 4] {
@@ -96,16 +94,17 @@ impl Coordinate {
     }
 }
 
-
 #[derive(Debug, Clone)]
-pub struct Grid<T>
-{
+pub struct Grid<T> {
     grid: Vec<Vec<T>>,
     pub n: usize,
     pub m: usize,
 }
 
-impl<T> TryFrom<Vec<String>> for Grid<T> where T: TryFrom<char> {
+impl<T> TryFrom<Vec<String>> for Grid<T>
+where
+    T: TryFrom<char>,
+{
     type Error = T::Error;
 
     fn try_from(lines: Vec<String>) -> Result<Self, Self::Error> {
@@ -144,7 +143,10 @@ impl<T> IndexMut<Coordinate> for Grid<T> {
     }
 }
 
-impl<T> Grid<T> where T: Copy {
+impl<T> Grid<T>
+where
+    T: Copy,
+{
     pub fn new(n: usize, m: usize, default: T) -> Self {
         Self {
             grid: vec![vec![default; m]; n],
