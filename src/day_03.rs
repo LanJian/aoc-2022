@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use std::str::FromStr;
 
 use anyhow::{anyhow, Error, Result};
+use rustc_hash::FxHashMap;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash)]
 struct Item {
@@ -26,8 +26,8 @@ impl From<char> for Item {
 
 #[derive(Debug, Clone, Default)]
 pub struct RuckSack {
-    first_compartment: HashMap<Item, usize>,
-    second_compartment: HashMap<Item, usize>,
+    first_compartment: FxHashMap<Item, usize>,
+    second_compartment: FxHashMap<Item, usize>,
 }
 
 impl RuckSack {
@@ -67,8 +67,8 @@ impl FromStr for RuckSack {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let len = s.len();
         let mut chars = s.chars();
-        let mut first_compartment = HashMap::default();
-        let mut second_compartment = HashMap::default();
+        let mut first_compartment = FxHashMap::default();
+        let mut second_compartment = FxHashMap::default();
 
         for _ in 0..len / 2 {
             let c = chars
@@ -97,7 +97,7 @@ impl FromStr for RuckSack {
     }
 }
 
-pub fn parse_input(lines: Vec<String>) -> Result<Vec<RuckSack>> {
+pub fn parse_input(lines: &[String]) -> Result<Vec<RuckSack>> {
     lines.iter().map(|l| RuckSack::from_str(l)).collect()
 }
 
@@ -142,14 +142,14 @@ mod tests {
     #[test]
     fn part_one_test() {
         let lines = utils::load_input("inputs/day_03.example").expect("could not load input");
-        let parsed = parse_input(lines).expect("could not parse input");
+        let parsed = parse_input(&lines).expect("could not parse input");
         assert_eq!(part_one(&parsed), 157);
     }
 
     #[test]
     fn part_two_test() {
         let lines = utils::load_input("inputs/day_03.example").expect("could not load input");
-        let parsed = parse_input(lines).expect("could not parse input");
+        let parsed = parse_input(&lines).expect("could not parse input");
         assert_eq!(part_two(&parsed), 70);
     }
 }

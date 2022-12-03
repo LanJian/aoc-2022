@@ -6,22 +6,23 @@ fn benchmark(c: &mut Criterion) {
 
     group.bench_function("part 1", |b| {
         let lines = utils::load_input("inputs/day_03").expect("could not load input");
-        let parsed = day_03::parse_input(lines).expect("could not parse input");
+        let parsed = day_03::parse_input(&lines).expect("could not parse input");
 
-        b.iter(|| black_box(day_03::part_one(&parsed)))
+        b.iter(|| day_03::part_one(black_box(&parsed)))
     });
     group.bench_function("part 2", |b| {
         let lines = utils::load_input("inputs/day_03").expect("could not load input");
-        let parsed = day_03::parse_input(lines).expect("could not parse input");
+        let parsed = day_03::parse_input(&lines).expect("could not parse input");
 
-        b.iter(|| black_box(day_03::part_two(&parsed)))
+        b.iter(|| day_03::part_two(black_box(&parsed)))
     });
     group.bench_function("combined(including parsing)", |b| {
+        let lines = utils::load_input("inputs/day_03").expect("could not load input");
+
         b.iter(|| {
-            let lines = utils::load_input("inputs/day_03").expect("could not load input");
-            let parsed = day_03::parse_input(lines).expect("could not parse input");
-            black_box(day_03::part_one(&parsed));
-            black_box(day_03::part_two(&parsed));
+            let parsed = day_03::parse_input(&lines).expect("could not parse input");
+            day_03::part_one(black_box(&parsed));
+            day_03::part_two(black_box(&parsed));
         })
     });
     group.finish();
