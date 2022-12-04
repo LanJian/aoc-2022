@@ -28,7 +28,7 @@ impl RuckSack {
         (1..=52).find(|x| combined >> x == 1)
     }
 
-    /// Returns the priority of the item that appears in all 3 [RuckSack]s. It is assume that there
+    /// Returns the priority of the item that appears in all 3 [RuckSack]s. It is assumed that there
     /// can be at most 1 such item.
     fn common_item_priority_in_group(&self, second: &RuckSack, third: &RuckSack) -> Option<usize> {
         let combined = self.union() & second.union() & third.union();
