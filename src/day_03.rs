@@ -1,63 +1,42 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Error, Result};
-use rustc_hash::FxHashMap;
 
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash)]
-struct Item {
-    kind: char,
-}
-
-impl Item {
-    fn priority(&self) -> usize {
-        if self.kind.is_lowercase() {
-            self.kind as usize - 'a' as usize + 1
-        } else {
-            self.kind as usize - 'A' as usize + 27
-        }
+fn char_to_priority(c: &char) -> usize {
+    if c.is_lowercase() {
+        *c as usize - 'a' as usize + 1
+    } else {
+        *c as usize - 'A' as usize + 27
     }
 }
 
-impl From<char> for Item {
-    fn from(c: char) -> Self {
-        Self { kind: c }
-    }
+fn char_to_bitmask(c: &char) -> u64 {
+    1 << char_to_priority(c)
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct RuckSack {
-    first_compartment: FxHashMap<Item, usize>,
-    second_compartment: FxHashMap<Item, usize>,
+    first_compartment: u64,
+    second_compartment: u64,
 }
 
 impl RuckSack {
-    /// Returns the [Item] that appears in both compartments. It is assumed that there can be at
-    /// most 1 such item.
-    fn common_item(&self) -> Option<&Item> {
-        self.first_compartment
-            .keys()
-            .find(|&item| self.second_compartment.contains_key(item))
+    /// Returns the priority of the item that appears in both compartments. It is assumed that there
+    /// can be at most 1 such item.
+    fn common_item_priority(&self) -> Option<usize> {
+        let combined = self.first_compartment & self.second_compartment;
+        (1..=52).find(|x| combined >> x == 1)
     }
 
-    /// Returns the [Item] that appears in all 3 [RuckSack]s. It is assume that there can be at
-    /// most 1 such item.
-    fn common_item_in_group(&self, second: &RuckSack, third: &RuckSack) -> Option<&Item> {
-        self.first_compartment
-            .keys()
-            .find(|&item| {
-                (second.first_compartment.contains_key(item)
-                    || second.second_compartment.contains_key(item))
-                    && (third.first_compartment.contains_key(item)
-                        || third.second_compartment.contains_key(item))
-            })
-            .or_else(|| {
-                self.second_compartment.keys().find(|&item| {
-                    (second.first_compartment.contains_key(item)
-                        || second.second_compartment.contains_key(item))
-                        && (third.first_compartment.contains_key(item)
-                            || third.second_compartment.contains_key(item))
-                })
-            })
+    /// Returns the priority of the item that appears in all 3 [RuckSack]s. It is assume that there
+    /// can be at most 1 such item.
+    fn common_item_priority_in_group(&self, second: &RuckSack, third: &RuckSack) -> Option<usize> {
+        let combined = self.union() & second.union() & third.union();
+        (1..=52).find(|x| combined >> x == 1)
+    }
+
+    fn union(&self) -> u64 {
+        self.first_compartment | self.second_compartment
     }
 }
 
@@ -67,27 +46,23 @@ impl FromStr for RuckSack {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let len = s.len();
         let mut chars = s.chars();
-        let mut first_compartment = FxHashMap::default();
-        let mut second_compartment = FxHashMap::default();
+        let mut first_compartment = 0;
+        let mut second_compartment = 0;
 
         for _ in 0..len / 2 {
             let c = chars
                 .next()
                 .ok_or_else(|| anyhow!("Not enough items in rucksack"))?;
-            first_compartment
-                .entry(c.into())
-                .and_modify(|count| *count += 1)
-                .or_insert(1);
+            let p = char_to_bitmask(&c);
+            first_compartment |= p;
         }
 
         for _ in len / 2..len {
             let c = chars
                 .next()
                 .ok_or_else(|| anyhow!("Not enough items in rucksack"))?;
-            second_compartment
-                .entry(c.into())
-                .and_modify(|count| *count += 1)
-                .or_insert(1);
+            let p = char_to_bitmask(&c);
+            second_compartment |= p;
         }
 
         Ok(RuckSack {
@@ -104,12 +79,7 @@ pub fn parse_input(lines: &[String]) -> Result<Vec<RuckSack>> {
 pub fn part_one(parsed: &Vec<RuckSack>) -> usize {
     parsed
         .iter()
-        .map(|rucksack| {
-            rucksack
-                .common_item()
-                .map(|item| item.priority())
-                .unwrap_or(0)
-        })
+        .map(|rucksack| rucksack.common_item_priority().unwrap_or(0))
         .sum()
 }
 
@@ -118,8 +88,7 @@ pub fn part_two(parsed: &Vec<RuckSack>) -> usize {
         .chunks(3)
         .map(|rucksacks| {
             rucksacks[0]
-                .common_item_in_group(&rucksacks[1], &rucksacks[2])
-                .map(|item| item.priority())
+                .common_item_priority_in_group(&rucksacks[1], &rucksacks[2])
                 .unwrap_or(0)
         })
         .sum()
@@ -132,11 +101,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn priority_test() {
-        assert_eq!(Item::from('a').priority(), 1);
-        assert_eq!(Item::from('z').priority(), 26);
-        assert_eq!(Item::from('A').priority(), 27);
-        assert_eq!(Item::from('Z').priority(), 52);
+    fn char_to_priority_test() {
+        assert_eq!(char_to_priority(&'a'), 1);
+        assert_eq!(char_to_priority(&'z'), 26);
+        assert_eq!(char_to_priority(&'A'), 27);
+        assert_eq!(char_to_priority(&'Z'), 52);
     }
 
     #[test]

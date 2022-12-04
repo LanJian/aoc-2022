@@ -11,12 +11,12 @@ struct Assignment {
 impl Assignment {
     /// Returns `true` if the assignment fully contains the other assignment. Returns `false`
     /// otherwise.
-    fn fully_contains(&self, other: Assignment) -> bool {
+    fn fully_contains(&self, other: &Assignment) -> bool {
         self.low <= other.low && self.high >= other.high
     }
 
     /// Returns `true` if the assignment overlaps the other assignment. Returns `false` otherwise.
-    fn overlaps(&self, other: Assignment) -> bool {
+    fn overlaps(&self, other: &Assignment) -> bool {
         !(self.low > other.high || other.low > self.high)
     }
 }
@@ -46,13 +46,13 @@ impl Assignments {
     /// Returns `true` if the first assignment fully contains the second assignment, or vice versa.
     /// Returns `false` otherwise.
     fn fully_overlapping(&self) -> bool {
-        self.first.fully_contains(self.second) || self.second.fully_contains(self.first)
+        self.first.fully_contains(&self.second) || self.second.fully_contains(&self.first)
     }
 
     /// Returns `true` if the first assignment overlaps the second assignment. Returns `false`
     /// otherwise.
     fn overlapping(&self) -> bool {
-        self.first.overlaps(self.second)
+        self.first.overlaps(&self.second)
     }
 }
 
