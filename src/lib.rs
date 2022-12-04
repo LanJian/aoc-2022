@@ -1,4 +1,5 @@
 pub mod grid;
+pub mod solution;
 pub mod utils;
 
 pub mod day_01;

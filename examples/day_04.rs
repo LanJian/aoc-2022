@@ -1,9 +1,11 @@
-use aoc_2022::{day_04, utils};
+use aoc_2022::{day_04, solution::Solution, utils};
 
 fn main() {
     let lines = utils::load_input("inputs/day_04").expect("could not load input");
     let parsed = day_04::parse_input(&lines).expect("could not parse input");
-
-    println!("part 1: {}", day_04::part_one(&parsed));
-    println!("part 2: {}", day_04::part_two(&parsed));
+    let solution = Solution {
+        part_one: day_04::part_one(&parsed),
+        part_two: day_04::part_two(&parsed),
+    };
+    println!("{}", solution);
 }
