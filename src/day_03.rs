@@ -25,14 +25,14 @@ impl RuckSack {
     /// can be at most 1 such item.
     fn common_item_priority(&self) -> Option<usize> {
         let combined = self.first_compartment & self.second_compartment;
-        (1..=52).find(|x| combined >> x == 1)
+        Some(combined.trailing_zeros() as usize)
     }
 
     /// Returns the priority of the item that appears in all 3 [RuckSack]s. It is assumed that there
     /// can be at most 1 such item.
     fn common_item_priority_in_group(&self, second: &RuckSack, third: &RuckSack) -> Option<usize> {
         let combined = self.union() & second.union() & third.union();
-        (1..=52).find(|x| combined >> x == 1)
+        Some(combined.trailing_zeros() as usize)
     }
 
     fn union(&self) -> u64 {
