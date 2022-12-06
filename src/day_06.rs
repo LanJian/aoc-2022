@@ -57,8 +57,8 @@ impl Signal<'_> {
 }
 
 pub fn parse_input(lines: &[String]) -> Result<Signal> {
-    if lines.len() > 1 {
-        bail!("Input has too many lines");
+    if lines.len() != 1 {
+        bail!("Input should be exactly 1 line");
     }
 
     Ok(Signal(&lines[0]))
