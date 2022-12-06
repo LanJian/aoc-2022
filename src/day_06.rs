@@ -4,52 +4,22 @@ use anyhow::{bail, Result};
 pub struct Signal<'a>(&'a str);
 
 impl Signal<'_> {
-    fn start_of_packet(&self) -> usize {
-        let mut chars = ['.'; 4];
-        let mut j = 0;
+    fn start_of_marker(&self, unique_window_size: usize) -> usize {
+        let mut last_index = [self.0.len(); 26];
+        let mut start = 0;
 
         for (i, c) in self.0.char_indices() {
-            chars[j] = c;
-
-            if i < 3
-                || chars[0] == chars[1]
-                || chars[0] == chars[2]
-                || chars[0] == chars[3]
-                || chars[1] == chars[2]
-                || chars[1] == chars[3]
-                || chars[2] == chars[3]
-            {
-                j = (j + 1) % 4
-            } else {
-                return i + 1;
-            }
-        }
-
-        0
-    }
-
-    fn start_of_message(&self) -> usize {
-        let chars: Vec<char> = self.0.chars().collect();
-        let mut acc = [0_usize; 26];
-
-        for i in 0..chars.len() {
-            let c = chars[i];
             let char_i = c as usize - 'a' as usize;
-            acc[char_i] += 1;
 
-            if i < 13 {
-                continue;
+            if last_index[char_i] < self.0.len() && last_index[char_i] >= start {
+                start = last_index[char_i] + 1
             }
 
-            if i >= 14 {
-                let left_char = chars[i - 14];
-                let left_char_i = left_char as usize - 'a' as usize;
-                acc[left_char_i] -= 1;
-            }
-
-            if acc.iter().all(|&x| x < 2) {
+            if i - start + 1 == unique_window_size {
                 return i + 1;
             }
+
+            last_index[char_i] = i
         }
 
         0
@@ -65,11 +35,11 @@ pub fn parse_input(lines: &[String]) -> Result<Signal> {
 }
 
 pub fn part_one(parsed: &Signal) -> usize {
-    parsed.start_of_packet()
+    parsed.start_of_marker(4)
 }
 
 pub fn part_two(parsed: &Signal) -> usize {
-    parsed.start_of_message()
+    parsed.start_of_marker(14)
 }
 
 #[cfg(test)]
@@ -78,43 +48,39 @@ mod tests {
     use crate::utils;
 
     #[test]
-    fn start_of_packet_test() {
+    fn start_of_marker_test() {
         assert_eq!(
-            Signal("mjqjpqmgbljsphdztnvjfqwrcgsmlb").start_of_packet(),
+            Signal("mjqjpqmgbljsphdztnvjfqwrcgsmlb").start_of_marker(4),
             7
         );
-        assert_eq!(Signal("bvwbjplbgvbhsrlpgdmjqwftvncz").start_of_packet(), 5);
-        assert_eq!(Signal("nppdvjthqldpwncqszvftbrmjlhg").start_of_packet(), 6);
+        assert_eq!(Signal("bvwbjplbgvbhsrlpgdmjqwftvncz").start_of_marker(4), 5);
+        assert_eq!(Signal("nppdvjthqldpwncqszvftbrmjlhg").start_of_marker(4), 6);
         assert_eq!(
-            Signal("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg").start_of_packet(),
+            Signal("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg").start_of_marker(4),
             10
         );
         assert_eq!(
-            Signal("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw").start_of_packet(),
+            Signal("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw").start_of_marker(4),
             11
         );
-    }
-
-    #[test]
-    fn start_of_message_test() {
         assert_eq!(
-            Signal("mjqjpqmgbljsphdztnvjfqwrcgsmlb").start_of_message(),
+            Signal("mjqjpqmgbljsphdztnvjfqwrcgsmlb").start_of_marker(14),
             19
         );
         assert_eq!(
-            Signal("bvwbjplbgvbhsrlpgdmjqwftvncz").start_of_message(),
+            Signal("bvwbjplbgvbhsrlpgdmjqwftvncz").start_of_marker(14),
             23
         );
         assert_eq!(
-            Signal("nppdvjthqldpwncqszvftbrmjlhg").start_of_message(),
+            Signal("nppdvjthqldpwncqszvftbrmjlhg").start_of_marker(14),
             23
         );
         assert_eq!(
-            Signal("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg").start_of_message(),
+            Signal("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg").start_of_marker(14),
             29
         );
         assert_eq!(
-            Signal("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw").start_of_message(),
+            Signal("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw").start_of_marker(14),
             26
         );
     }
