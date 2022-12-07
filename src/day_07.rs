@@ -60,13 +60,13 @@ impl FromStr for File {
     }
 }
 
+type DirWrapper = Rc<RefCell<Dir>>;
+
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct Dir {
     size: usize,
-    dirs: FxHashMap<String, Rc<RefCell<Dir>>>,
+    dirs: FxHashMap<String, DirWrapper>,
 }
-
-type DirWrapper = Rc<RefCell<Dir>>;
 
 impl Dir {
     fn build(output_lines: &Vec<OutputLine>) -> DirWrapper {
@@ -85,10 +85,7 @@ impl Dir {
                     }
                 }
                 OutputLine::Cd(name) => {
-                    let new_dir = Dir {
-                        size: 0,
-                        dirs: FxHashMap::default(),
-                    };
+                    let new_dir = Dir::default();
                     cur.borrow_mut()
                         .dirs
                         .entry(name.to_owned())
@@ -99,10 +96,7 @@ impl Dir {
                 }
                 OutputLine::Ls => {}
                 OutputLine::Dir(name) => {
-                    let new_dir = Dir {
-                        size: 0,
-                        dirs: FxHashMap::default(),
-                    };
+                    let new_dir = Dir::default();
                     cur.borrow_mut()
                         .dirs
                         .entry(name.to_owned())
@@ -110,7 +104,6 @@ impl Dir {
                 }
                 OutputLine::File(file) => cur.borrow_mut().size += file.size,
             }
-
         }
 
         root
@@ -138,7 +131,8 @@ impl Dir {
     }
 
     fn min_freeable_size(&self, desired: usize) -> usize {
-        let result = self.dirs
+        let result = self
+            .dirs
             .iter()
             .map(|(_, v)| v.borrow().min_freeable_size(desired))
             .filter(|&s| s >= desired)
@@ -156,7 +150,10 @@ impl Dir {
 }
 
 pub fn parse_input(lines: &[String]) -> Result<DirWrapper> {
-    let parsed = lines.iter().map(|l| OutputLine::from_str(l)).collect::<Result<Vec<_>>>()?;
+    let parsed = lines
+        .iter()
+        .map(|l| OutputLine::from_str(l))
+        .collect::<Result<Vec<_>>>()?;
     let dir = Dir::build(&parsed);
     dir.borrow_mut().calculate_size();
     Ok(dir)
