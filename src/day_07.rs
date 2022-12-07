@@ -64,7 +64,6 @@ impl FromStr for File {
 struct Dir {
     size: usize,
     dirs: FxHashMap<String, Rc<RefCell<Dir>>>,
-    files: FxHashMap<String, File>,
 }
 
 type DirWrapper = Rc<RefCell<Dir>>;
@@ -89,7 +88,6 @@ impl Dir {
                     let new_dir = Dir {
                         size: 0,
                         dirs: FxHashMap::default(),
-                        files: FxHashMap::default(),
                     };
                     cur.borrow_mut()
                         .dirs
@@ -104,7 +102,6 @@ impl Dir {
                     let new_dir = Dir {
                         size: 0,
                         dirs: FxHashMap::default(),
-                        files: FxHashMap::default(),
                     };
                     cur.borrow_mut()
                         .dirs
