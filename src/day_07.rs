@@ -69,15 +69,17 @@ pub struct Dir {
 }
 
 impl Dir {
-    fn build(output_lines: &Vec<OutputLine>) -> DirWrapper {
+    fn build(lines: &[String]) -> Result<DirWrapper> {
         let root = Rc::new(RefCell::new(Dir::default()));
         let mut cur = Rc::clone(&root);
         let mut stack = vec![];
 
-        for line in output_lines {
-            match line {
+        for line in lines {
+            let output_line = OutputLine::from_str(line)?;
+            match output_line {
                 OutputLine::Cd(name) if name == "/" => {
                     cur = Rc::clone(&root);
+                    stack.clear();
                 }
                 OutputLine::Cd(name) if name == ".." => {
                     if let Some(p) = stack.pop() {
@@ -90,7 +92,7 @@ impl Dir {
                         .dirs
                         .entry(name.to_owned())
                         .or_insert(Rc::new(RefCell::new(new_dir)));
-                    let new_cur = Rc::clone(&cur.borrow().dirs[name]);
+                    let new_cur = Rc::clone(&cur.borrow().dirs[&name]);
                     stack.push(Rc::clone(&cur));
                     cur = new_cur;
                 }
@@ -106,7 +108,7 @@ impl Dir {
             }
         }
 
-        root
+        Ok(root)
     }
 
     fn calculate_size(&mut self) -> usize {
@@ -150,11 +152,7 @@ impl Dir {
 }
 
 pub fn parse_input(lines: &[String]) -> Result<DirWrapper> {
-    let parsed = lines
-        .iter()
-        .map(|l| OutputLine::from_str(l))
-        .collect::<Result<Vec<_>>>()?;
-    let dir = Dir::build(&parsed);
+    let dir = Dir::build(lines)?;
     dir.borrow_mut().calculate_size();
     Ok(dir)
 }
