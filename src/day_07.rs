@@ -61,7 +61,7 @@ impl FromStr for File {
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
-struct Dir {
+pub struct Dir {
     size: usize,
     dirs: FxHashMap<String, Rc<RefCell<Dir>>>,
 }
@@ -155,23 +155,20 @@ impl Dir {
     }
 }
 
-pub fn parse_input(lines: &[String]) -> Result<Vec<OutputLine>> {
-    lines.iter().map(|l| OutputLine::from_str(l)).collect()
+pub fn parse_input(lines: &[String]) -> Result<DirWrapper> {
+    let parsed = lines.iter().map(|l| OutputLine::from_str(l)).collect::<Result<Vec<_>>>()?;
+    let dir = Dir::build(&parsed);
+    dir.borrow_mut().calculate_size();
+    Ok(dir)
 }
 
-pub fn part_one(parsed: &Vec<OutputLine>) -> usize {
-    let dir = Dir::build(parsed);
-    dir.borrow_mut().calculate_size();
-    let ret = dir.borrow().sum_dir_sizes(100000);
-    ret
+pub fn part_one(parsed: &DirWrapper) -> usize {
+    parsed.borrow().sum_dir_sizes(100000)
 }
 
-pub fn part_two(parsed: &Vec<OutputLine>) -> usize {
-    let dir = Dir::build(parsed);
-    dir.borrow_mut().calculate_size();
-    let desired = 30000000 - (70000000 - dir.borrow().size);
-    let ret = dir.borrow().min_freeable_size(desired);
-    ret
+pub fn part_two(parsed: &DirWrapper) -> usize {
+    let desired = 30000000 - (70000000 - parsed.borrow().size);
+    parsed.borrow().min_freeable_size(desired)
 }
 
 #[cfg(test)]
