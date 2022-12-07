@@ -6,6 +6,7 @@ mod day_03;
 mod day_04;
 mod day_05;
 mod day_06;
+mod day_07;
 // ${BENCH_IMPORT_MARKER}
 
 criterion_main! {
@@ -15,5 +16,6 @@ criterion_main! {
     day_04::benches,
     day_05::benches,
     day_06::benches,
+    day_07::benches,
     // ${CRITERION_MAIN_MARKER}
 }
