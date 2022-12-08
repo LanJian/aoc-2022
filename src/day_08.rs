@@ -98,7 +98,7 @@ impl Grove {
 
         // left to right
         for i in 0..self.n {
-            let mut stack = vec![];
+            let mut stack = Vec::with_capacity(self.m);
 
             for j in 0..self.m {
                 let coord = (i, j).into();
@@ -118,7 +118,7 @@ impl Grove {
 
         // right to left
         for i in 0..self.n {
-            let mut stack = vec![];
+            let mut stack = Vec::with_capacity(self.m);
 
             for j in 0..self.m {
                 let jj = self.m - j - 1;
@@ -140,7 +140,7 @@ impl Grove {
 
         // top to bottom
         for j in 0..self.m {
-            let mut stack = vec![];
+            let mut stack = Vec::with_capacity(self.n);
 
             for i in 0..self.n {
                 let coord = (i, j).into();
@@ -160,7 +160,7 @@ impl Grove {
 
         // bottom to top
         for j in 0..self.m {
-            let mut stack = vec![];
+            let mut stack = Vec::with_capacity(self.n);
 
             for i in 0..self.n {
                 let ii = self.n - i - 1;
