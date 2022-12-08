@@ -101,13 +101,13 @@ pub struct Grid<T> {
     pub m: usize,
 }
 
-impl<T> TryFrom<Vec<String>> for Grid<T>
+impl<T> TryFrom<&[String]> for Grid<T>
 where
     T: TryFrom<char>,
 {
     type Error = T::Error;
 
-    fn try_from(lines: Vec<String>) -> Result<Self, Self::Error> {
+    fn try_from(lines: &[String]) -> Result<Self, Self::Error> {
         let grid = lines
             .iter()
             .map(|line| {
@@ -143,6 +143,7 @@ impl<T> IndexMut<Coordinate> for Grid<T> {
     }
 }
 
+
 impl<T> Grid<T>
 where
     T: Copy,
@@ -157,5 +158,15 @@ where
 
     pub fn is_in_bounds(&self, coord: Coordinate) -> bool {
         (0..self.n as i64).contains(&coord.0) && (0..self.m as i64).contains(&coord.1)
+    }
+
+    pub fn is_on_edge(&self, coord: Coordinate) -> bool {
+        if self.is_in_bounds(coord) {
+            let row = coord.0 as usize;
+            let col = coord.1 as usize;
+            row == 0 || row == self.n - 1 || col == 0 || col == self.m - 1
+        } else {
+            false
+        }
     }
 }
