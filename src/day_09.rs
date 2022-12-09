@@ -83,21 +83,25 @@ impl State {
         };
 
         for i in 1..self.rope.len() {
-            self.rope[i] = match (
-                self.rope[i].x() - self.rope[i - 1].x(),
-                self.rope[i].y() - self.rope[i - 1].y(),
-            ) {
-                (dx, dy) if dx.abs() < 2 && dy.abs() < 2 => self.rope[i],
-                (0, dy) if dy > 1 => self.rope[i].south(),
-                (0, dy) if dy < -1 => self.rope[i].north(),
-                (dx, 0) if dx > 1 => self.rope[i].west(),
-                (dx, 0) if dx < -1 => self.rope[i].east(),
-                (dx, dy) if (dx > 1 && dy > 0) || (dx > 0 && dy > 1) => self.rope[i].southwest(),
-                (dx, dy) if (dx > 1 && dy < 0) || (dx > 0 && dy < -1) => self.rope[i].northwest(),
-                (dx, dy) if (dx < -1 && dy > 0) || (dx < 0 && dy > 1) => self.rope[i].southeast(),
-                (dx, dy) if (dx < -1 && dy < 0) || (dx < 0 && dy < -1) => self.rope[i].northeast(),
-                _ => self.rope[i],
-            };
+            let cur = self.rope[i];
+            let prev = self.rope[i - 1];
+            let (dx, dy) = (cur.x() - prev.x(), cur.y() - prev.y());
+
+            if dx.abs() < 2 && dy.abs() < 2 {
+                continue;
+            }
+
+            match dx.signum() {
+                1 => self.rope[i] = self.rope[i].west(),
+                -1 => self.rope[i] = self.rope[i].east(),
+                _ => {}
+            }
+
+            match dy.signum() {
+                1 => self.rope[i] = self.rope[i].south(),
+                -1 => self.rope[i] = self.rope[i].north(),
+                _ => {}
+            }
         }
 
         if let Some(&c) = self.rope.last() {
