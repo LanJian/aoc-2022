@@ -3,35 +3,35 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
-pub struct Coordinate(i64, i64);
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Default)]
+pub struct Coordinate(pub isize, pub isize);
 
 impl From<(usize, usize)> for Coordinate {
     fn from(coords: (usize, usize)) -> Self {
-        Coordinate(coords.0 as i64, coords.1 as i64)
+        Coordinate(coords.0 as isize, coords.1 as isize)
     }
 }
 
-impl From<(i64, i64)> for Coordinate {
-    fn from(coords: (i64, i64)) -> Self {
+impl From<(isize, isize)> for Coordinate {
+    fn from(coords: (isize, isize)) -> Self {
         Coordinate(coords.0, coords.1)
     }
 }
 
 impl Coordinate {
-    pub fn x(&self) -> i64 {
+    pub fn x(&self) -> isize {
         self.1
     }
 
-    pub fn y(&self) -> i64 {
+    pub fn y(&self) -> isize {
+        -self.0
+    }
+
+    pub fn row(&self) -> isize {
         self.0
     }
 
-    pub fn row(&self) -> i64 {
-        self.0
-    }
-
-    pub fn col(&self) -> i64 {
+    pub fn col(&self) -> isize {
         self.1
     }
 
@@ -143,7 +143,6 @@ impl<T> IndexMut<Coordinate> for Grid<T> {
     }
 }
 
-
 impl<T> Grid<T>
 where
     T: Copy,
@@ -157,7 +156,7 @@ where
     }
 
     pub fn is_in_bounds(&self, coord: Coordinate) -> bool {
-        (0..self.n as i64).contains(&coord.0) && (0..self.m as i64).contains(&coord.1)
+        (0..self.n as isize).contains(&coord.0) && (0..self.m as isize).contains(&coord.1)
     }
 
     pub fn is_on_edge(&self, coord: Coordinate) -> bool {
