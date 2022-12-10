@@ -2,7 +2,7 @@ use aoc_2022::{day_10, utils};
 use criterion::{black_box, criterion_group, Criterion};
 
 fn benchmark(c: &mut Criterion) {
-    let mut group = c.benchmark_group("day 10: cathode-ray rube");
+    let mut group = c.benchmark_group("day 10: cathode-ray tube");
 
     group.bench_function("combined(including parsing, both parts are solved together)", |b| {
         let lines = utils::load_input("inputs/day_10").expect("could not load input");
