@@ -1,5 +1,4 @@
 use anyhow::{anyhow, bail, Error, Result};
-use std::fmt;
 use std::str::FromStr;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
