@@ -77,7 +77,7 @@ impl Cpu {
 
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct Crt {
-    output: Vec<char>,
+    output: String,
     cur_row: usize,
 }
 
@@ -105,12 +105,6 @@ impl Crt {
     }
 }
 
-impl fmt::Display for Crt {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.output.iter().collect::<String>())
-    }
-}
-
 pub fn parse_input(lines: &[String]) -> Result<(Cpu, Crt)> {
     let mut cpu = Cpu::default();
     let mut crt = Crt::default();
@@ -128,8 +122,8 @@ pub fn part_one(parsed: &(Cpu, Crt)) -> isize {
     parsed.0.signal_strength
 }
 
-pub fn part_two(parsed: &(Cpu, Crt)) -> String {
-    parsed.1.to_string()
+pub fn part_two(parsed: &(Cpu, Crt)) -> &str {
+    &parsed.1.output
 }
 
 #[cfg(test)]
