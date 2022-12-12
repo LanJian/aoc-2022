@@ -115,11 +115,8 @@ impl Terrain {
                 if self.grid[neighbour] == 'a' {
                     q.push((0, neighbour).into());
                     acc[neighbour] = 0;
-                } else {
-                    if acc[coord] + 1 < acc[neighbour] {
-                        acc[neighbour] = acc[coord] + 1
-                    }
-
+                } else if acc[coord] + 1 < acc[neighbour] {
+                    acc[neighbour] = acc[coord] + 1;
                     q.push((acc[neighbour], neighbour).into())
                 }
             }
