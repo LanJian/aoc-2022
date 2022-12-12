@@ -1,7 +1,6 @@
 use std::collections::{BinaryHeap, VecDeque};
 
 use anyhow::{bail, Error, Result};
-use rustc_hash::FxHashSet;
 
 use crate::grid::{Coordinate, Grid};
 
@@ -54,7 +53,7 @@ impl TryFrom<&[String]> for Terrain {
 
 impl Terrain {
     fn bfs(&self) -> usize {
-        let mut visited = FxHashSet::default();
+        let mut visited = Grid::new(self.grid.n, self.grid.m, false);
         let mut q = VecDeque::default();
         q.push_back((self.start, 0));
 
@@ -63,11 +62,11 @@ impl Terrain {
                 return dist;
             }
 
-            if visited.contains(&coord) {
+            if visited[coord] {
                 continue;
             }
 
-            visited.insert(coord);
+            visited[coord] = true;
 
             for neighbour in coord.cardinal_neighbours() {
                 if !self.grid.is_in_bounds(neighbour) {
@@ -86,7 +85,7 @@ impl Terrain {
     }
 
     fn dijkstra(&self) -> usize {
-        let mut visited = FxHashSet::default();
+        let mut visited = Grid::new(self.grid.n, self.grid.m, false);
         let mut acc = Grid::new(self.grid.n, self.grid.m, usize::MAX);
         let mut q: BinaryHeap<Node> = BinaryHeap::default();
         q.push((0, self.start).into());
@@ -98,11 +97,11 @@ impl Terrain {
                 return acc[coord];
             }
 
-            if visited.contains(&coord) {
+            if visited[coord] {
                 continue;
             }
 
-            visited.insert(coord);
+            visited[coord] = true;
 
             for neighbour in coord.cardinal_neighbours() {
                 if !self.grid.is_in_bounds(neighbour) {
