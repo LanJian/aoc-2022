@@ -88,8 +88,16 @@ impl Terrain {
         let mut visited = Grid::new(self.grid.n, self.grid.m, false);
         let mut acc = Grid::new(self.grid.n, self.grid.m, usize::MAX);
         let mut q: BinaryHeap<Node> = BinaryHeap::default();
-        q.push((0, self.start).into());
-        acc[self.start] = 0;
+
+        for i in 0..self.grid.n {
+            for j in 0..self.grid.m {
+                let coord = (i, j).into();
+                if self.grid[coord] == 'a' {
+                    q.push((0, coord).into());
+                    acc[coord] = 0;
+                }
+            }
+        }
 
         while let Some(node) = q.pop() {
             let coord = node.coord;
@@ -112,10 +120,7 @@ impl Terrain {
                     continue;
                 }
 
-                if self.grid[neighbour] == 'a' {
-                    q.push((0, neighbour).into());
-                    acc[neighbour] = 0;
-                } else if acc[coord] + 1 < acc[neighbour] {
+                if acc[coord] + 1 < acc[neighbour] {
                     acc[neighbour] = acc[coord] + 1;
                     q.push((acc[neighbour], neighbour).into())
                 }
