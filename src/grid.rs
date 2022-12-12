@@ -67,10 +67,12 @@ impl Coordinate {
         self.south().west()
     }
 
+    /// Returns the 4 cardinal neighbours: north, south, east, and west
     pub fn cardinal_neighbours(&self) -> [Self; 4] {
         [self.north(), self.south(), self.east(), self.west()]
     }
 
+    /// Returns the 4 ordinal neighbours: northeast, northwest, southeast, southwest
     pub fn ordinal_neighbours(&self) -> [Self; 4] {
         [
             self.northeast(),
@@ -80,6 +82,7 @@ impl Coordinate {
         ]
     }
 
+    /// Returns all 8 of the neighbours
     pub fn neighbours(&self) -> [Self; 8] {
         [
             self.north(),
@@ -145,7 +148,7 @@ impl<T> IndexMut<Coordinate> for Grid<T> {
 
 impl<T> Grid<T>
 where
-    T: Copy,
+    T: Copy + PartialEq,
 {
     pub fn new(n: usize, m: usize, default: T) -> Self {
         Self {
@@ -167,5 +170,17 @@ where
         } else {
             false
         }
+    }
+
+    pub fn find_index(&self, item: &T) -> Option<Coordinate> {
+        for i in 0..self.n {
+            for j in 0..self.m {
+                if self.grid[i][j] == *item {
+                    return Some(Coordinate(i as isize, j as isize));
+                }
+            }
+        }
+
+        None
     }
 }
