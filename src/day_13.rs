@@ -1,8 +1,7 @@
-use anyhow::{bail, Error, Result};
-use serde::Deserialize;
+use anyhow::{anyhow, bail, Error, Result};
+use std::str::FromStr;
 
-#[derive(Debug, Clone, Eq, PartialEq, Deserialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 enum PacketData {
     Integer(u64),
     List(Vec<PacketData>),
@@ -25,7 +24,6 @@ impl PartialOrd for PacketData {
     }
 }
 
-
 impl From<u64> for PacketData {
     fn from(value: u64) -> Self {
         Self::Integer(value)
@@ -39,10 +37,88 @@ impl PacketData {
             Self::List(_) => self.clone(),
         }
     }
+
+    fn push_to_list(&mut self, value: Self) -> Result<()> {
+        match self {
+            Self::Integer(_) => bail!("Packet data is not a list"),
+            Self::List(l) => l.push(value),
+        }
+
+        Ok(())
+    }
 }
 
-#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, PartialOrd, Ord)]
 struct Packet(Vec<PacketData>);
+
+impl FromStr for Packet {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut stack = vec![PacketData::List(Vec::default())];
+        let mut start = 0;
+
+        for (i, c) in s.char_indices() {
+            match c {
+                '[' => {
+                    stack.push(PacketData::List(Vec::default()));
+                    start = i + 1;
+                }
+                ']' => {
+                    let mut popped = stack.pop().ok_or_else(|| {
+                        anyhow!("Failed to parse: input {}, index {}, char {}", s, i, c)
+                    })?;
+
+                    if i - start > 0 {
+                        let value: u64 = s[start..i].parse()?;
+                        popped.push_to_list(PacketData::Integer(value))?;
+                    }
+
+                    stack
+                        .last_mut()
+                        .ok_or_else(|| {
+                            anyhow!("Failed to parse: input {}, index {}, char {}", s, i, c)
+                        })?
+                        .push_to_list(popped)?;
+
+                    start = i + 1;
+                }
+                ',' => {
+                    if i - start > 0 {
+                        let value: u64 = s[start..i].parse()?;
+                        stack
+                            .last_mut()
+                            .ok_or_else(|| {
+                                anyhow!("Failed to parse: input {}, index {}, char {}", s, i, c)
+                            })?
+                            .push_to_list(PacketData::Integer(value))?;
+                    }
+
+                    start = i + 1;
+                }
+                ' ' => start = i + 1,
+                _ => {}
+            }
+        }
+
+        let popped = stack
+            .pop()
+            .ok_or_else(|| anyhow!("Mismatched [] brackets"))?;
+
+        match popped {
+            PacketData::Integer(_) => bail!("Expected input to be a list, got integer"),
+            PacketData::List(mut l) => {
+                let inner = l
+                    .pop()
+                    .ok_or_else(|| anyhow!("Expected inner list to exist"))?;
+                match inner {
+                    PacketData::Integer(_) => bail!("Expected input to be a list, got integer"),
+                    PacketData::List(k) => Ok(Packet(k)),
+                }
+            }
+        }
+    }
+}
 
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct PacketPair {
@@ -58,8 +134,8 @@ impl TryFrom<&[String]> for PacketPair {
             bail!("Packet pair input should be exactly 2 lines");
         }
 
-        let left = serde_json::from_str(&lines[0])?;
-        let right = serde_json::from_str(&lines[1])?;
+        let left = Packet::from_str(&lines[0])?;
+        let right = Packet::from_str(&lines[1])?;
         Ok(Self { left, right })
     }
 }
@@ -72,7 +148,8 @@ pub fn parse_input(lines: &[String]) -> Result<Vec<PacketPair>> {
 }
 
 pub fn part_one(parsed: &Vec<PacketPair>) -> usize {
-    parsed.iter()
+    parsed
+        .iter()
         .enumerate()
         .filter(|(_, pair)| pair.left < pair.right)
         .map(|(i, _)| i + 1)
@@ -142,36 +219,19 @@ mod tests {
     #[test]
     fn packet_ord_test() {
         assert!(
-            serde_json::from_str::<Packet>("[1,1,3,1,1]").unwrap()
-                < serde_json::from_str::<Packet>("[1,1,5,1,1]").unwrap()
+            Packet::from_str("[1,1,3,1,1]").unwrap() < Packet::from_str("[1,1,5,1,1]").unwrap()
         );
+        assert!(Packet::from_str("[[1],[2,3,4]]").unwrap() < Packet::from_str("[[1],4]").unwrap());
+        assert!(Packet::from_str("[9]").unwrap() > Packet::from_str("[[8,7,6]]").unwrap());
         assert!(
-            serde_json::from_str::<Packet>("[[1],[2,3,4]]").unwrap()
-                < serde_json::from_str::<Packet>("[[1],4]").unwrap()
+            Packet::from_str("[[4,4],4,4]").unwrap() < Packet::from_str("[[4,4],4,4,4]").unwrap()
         );
+        assert!(Packet::from_str("[7,7,7,7]").unwrap() > Packet::from_str("[7,7,7]").unwrap());
+        assert!(Packet::from_str("[]").unwrap() < Packet::from_str("[3]").unwrap());
+        assert!(Packet::from_str("[[[]]]").unwrap() > Packet::from_str("[[]]").unwrap());
         assert!(
-            serde_json::from_str::<Packet>("[9]").unwrap()
-                > serde_json::from_str::<Packet>("[[8,7,6]]").unwrap()
-        );
-        assert!(
-            serde_json::from_str::<Packet>("[[4,4],4,4]").unwrap()
-                < serde_json::from_str::<Packet>("[[4,4],4,4,4]").unwrap()
-        );
-        assert!(
-            serde_json::from_str::<Packet>("[7,7,7,7]").unwrap()
-                > serde_json::from_str::<Packet>("[7,7,7]").unwrap()
-        );
-        assert!(
-            serde_json::from_str::<Packet>("[]").unwrap()
-                < serde_json::from_str::<Packet>("[3]").unwrap()
-        );
-        assert!(
-            serde_json::from_str::<Packet>("[[[]]]").unwrap()
-                > serde_json::from_str::<Packet>("[[]]").unwrap()
-        );
-        assert!(
-            serde_json::from_str::<Packet>("[1,[2,[3,[4,[5,6,7]]]],8,9]").unwrap()
-                > serde_json::from_str::<Packet>("[1,[2,[3,[4,[5,6,0]]]],8,9]").unwrap()
+            Packet::from_str("[1,[2,[3,[4,[5,6,7]]]],8,9]").unwrap()
+                > Packet::from_str("[1,[2,[3,[4,[5,6,0]]]],8,9]").unwrap()
         );
     }
 
