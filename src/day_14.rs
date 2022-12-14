@@ -13,7 +13,6 @@ impl TryFrom<&[String]> for Cave {
     type Error = Error;
 
     fn try_from(lines: &[String]) -> Result<Self, Self::Error> {
-        let mut min_row = usize::MAX;
         let mut max_row = usize::MIN;
         let mut min_col = usize::MAX;
         let mut max_col = usize::MIN;
@@ -37,10 +36,6 @@ impl TryFrom<&[String]> for Cave {
                 prev_row = row;
                 prev_col = col;
 
-                if row < min_row {
-                    min_row = row;
-                }
-
                 if row > max_row {
                     max_row = row;
                 }
@@ -55,16 +50,10 @@ impl TryFrom<&[String]> for Cave {
             }
         }
 
-        // We make a grid wide enough such that even without any rocks we can fill it with sand
-        // all the way to the sand origin. We also make it tall enough to include the floor. This
-        // way we can solve part 1 and part 2 the same way, we just need to fill in the floor for
-        // part 2.
-        //
-        // There's probably a smarter way to do it, but I haven't thought hard enough to flesh it
-        // out.
+        // extend the sides by 1 column each side so we can correctly simulate for part 2
+        min_col -= 1;
+        max_col += 1;
         let n = max_row + 3;
-        max_col = max_col.max(500 + n - 1);
-        min_col = min_col.min(500 - n + 1);
         let mut grid = Grid::new(n, max_col - min_col + 1, false);
 
         // now fill in the rocks
@@ -95,16 +84,9 @@ impl TryFrom<&[String]> for Cave {
 }
 
 impl Cave {
-    fn fill_floor(&mut self) {
-        for j in 0..self.grid.m {
-            let coord = (self.grid.n - 1, j).into();
-            self.grid[coord] = true;
-        }
-    }
-
-    fn fill_sand(&mut self) {
+    fn fill_sand(&mut self, bottomless: bool) {
         loop {
-            match self.drop_sand() {
+            match self.drop_sand(bottomless) {
                 Some(coord) => {
                     self.grid[coord] = true;
                     self.num_sand_grains += 1;
@@ -117,12 +99,24 @@ impl Cave {
                 None => break,
             }
         }
+
+        // if there is a floor, add the sides
+        if !bottomless {
+            let h = self.grid.n - 2;
+            let w = self.grid.m;
+            let o = self.sand_origin.col() as usize;
+            let left = h - o;
+            let right = h - (w - o) + 1;
+
+            self.num_sand_grains += (1 + left) * left / 2;
+            self.num_sand_grains += (1 + right) * right / 2;
+        }
     }
 
-    fn drop_sand(&mut self) -> Option<Coordinate> {
+    fn drop_sand(&mut self, bottomless: bool) -> Option<Coordinate> {
         let mut cur = self.sand_origin.clone();
         loop {
-            let new_coord = self.tick(cur);
+            let new_coord = self.tick(cur, bottomless);
             if new_coord.is_none() {
                 return None;
             }
@@ -139,17 +133,35 @@ impl Cave {
         Some(cur)
     }
 
-    fn tick(&mut self, sand: Coordinate) -> Option<Coordinate> {
+    fn tick(&mut self, sand: Coordinate, bottomless: bool) -> Option<Coordinate> {
         let candidates = [sand.south(), sand.southwest(), sand.southeast()];
         for c in candidates {
-            // if we go out of bounds, then it will fall forever
-            if !self.grid.is_in_bounds(c) {
-                return None;
-            }
+            if bottomless {
+                // if we go out of bounds, then it will fall forever
+                if !self.grid.is_in_bounds(c) {
+                    return None;
+                }
 
-            // if the candidate is unoccupied, we will go there
-            if self.grid[c] == false {
-                return Some(c);
+                // if the candidate is unoccupied, we will go there
+                if self.grid[c] == false {
+                    return Some(c);
+                }
+            } else {
+                // if we go out of bounds, we assume it's occupied
+                if !self.grid.is_in_bounds(c) {
+                    continue;
+                }
+
+                // if the candidate is on the floor, then we cannot go down anymore
+                let floor = self.grid.n - 1;
+                if c.row() as usize == floor {
+                    return Some(sand);
+                }
+
+                // if the candidate is unoccupied, we will go there
+                if self.grid[c] == false {
+                    return Some(c);
+                }
             }
         }
 
@@ -164,14 +176,13 @@ pub fn parse_input(lines: &[String]) -> Result<Cave> {
 
 pub fn part_one(parsed: &Cave) -> usize {
     let mut cave = parsed.clone();
-    cave.fill_sand();
+    cave.fill_sand(true);
     cave.num_sand_grains
 }
 
 pub fn part_two(parsed: &Cave) -> usize {
     let mut cave = parsed.clone();
-    cave.fill_floor();
-    cave.fill_sand();
+    cave.fill_sand(false);
     cave.num_sand_grains
 }
 
