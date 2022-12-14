@@ -65,7 +65,7 @@ impl TryFrom<&[String]> for Cave {
         let n = max_row + 3;
         max_col = max_col.max(500 + n - 1);
         min_col = min_col.min(500 - n + 1);
-        let mut grid = Grid::new(max_row + 3, max_col - min_col + 1, false);
+        let mut grid = Grid::new(n, max_col - min_col + 1, false);
 
         // now fill in the rocks
         for (a, b) in segments {
@@ -104,8 +104,7 @@ impl Cave {
 
     fn fill_sand(&mut self) {
         loop {
-            let foo = self.drop_sand();
-            match foo {
+            match self.drop_sand() {
                 Some(coord) => {
                     self.grid[coord] = true;
                     self.num_sand_grains += 1;
@@ -121,23 +120,23 @@ impl Cave {
     }
 
     fn drop_sand(&mut self) -> Option<Coordinate> {
-        let mut coord = self.sand_origin.clone();
+        let mut cur = self.sand_origin.clone();
         loop {
-            let new_coord = self.tick(coord);
+            let new_coord = self.tick(cur);
             if new_coord.is_none() {
                 return None;
             }
 
             // safe to unwrap because we return if it was None
             let unwrapped = new_coord.unwrap();
-            if new_coord.unwrap() == coord {
+            if unwrapped == cur {
                 break;
             }
 
-            coord = unwrapped;
+            cur = unwrapped;
         }
 
-        Some(coord)
+        Some(cur)
     }
 
     fn tick(&mut self, sand: Coordinate) -> Option<Coordinate> {
