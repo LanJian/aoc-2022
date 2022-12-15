@@ -95,6 +95,10 @@ impl Coordinate {
             self.southwest(),
         ]
     }
+
+    pub fn manhattan_distance(&self, other: &Self) -> usize {
+        other.0.abs_diff(self.0) + other.1.abs_diff(self.1)
+    }
 }
 
 #[derive(Debug, Clone)]

@@ -14,6 +14,7 @@ mod day_11;
 mod day_12;
 mod day_13;
 mod day_14;
+mod day_15;
 // ${BENCH_IMPORT_MARKER}
 
 criterion_main! {
@@ -31,5 +32,6 @@ criterion_main! {
     day_12::benches,
     day_13::benches,
     day_14::benches,
+    day_15::benches,
     // ${CRITERION_MAIN_MARKER}
 }
