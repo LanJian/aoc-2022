@@ -2,7 +2,7 @@ use aoc_2022::{day_20, utils};
 use criterion::{black_box, criterion_group, Criterion};
 
 fn benchmark(c: &mut Criterion) {
-    let mut group = c.benchmark_group("day 20: REPLACE ME");
+    let mut group = c.benchmark_group("day 20: grove positioning system");
 
     group.bench_function("part 1", |b| {
         let lines = utils::load_input("inputs/day_20").expect("could not load input");
