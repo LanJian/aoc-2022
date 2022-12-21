@@ -1,5 +1,6 @@
 pub mod algebra;
 pub mod grid;
+pub mod linked_list;
 pub mod solution;
 pub mod utils;
 
@@ -19,4 +20,5 @@ pub mod day_13;
 pub mod day_14;
 pub mod day_15;
 pub mod day_18;
+pub mod day_20;
 // ${LIB_IMPORT_MARKER}
