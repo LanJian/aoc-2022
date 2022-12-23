@@ -21,4 +21,5 @@ pub mod day_14;
 pub mod day_15;
 pub mod day_18;
 pub mod day_20;
+pub mod day_21;
 // ${LIB_IMPORT_MARKER}

@@ -1,5 +1,5 @@
-use std::ops::Deref;
 use std::fmt;
+use std::ops::Deref;
 use std::rc::Rc;
 
 #[derive(PartialEq, Eq, Clone, Default)]
@@ -18,7 +18,6 @@ impl ListNode {
         self
     }
 }
-
 
 impl fmt::Debug for ListNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -113,4 +112,3 @@ mod tests {
         );
     }
 }
-
