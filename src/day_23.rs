@@ -127,17 +127,16 @@ impl Iterator for Proposal {
 pub struct Grove {
     elves: FxHashSet<Coordinate>,
     starting_dir: StartingDirection,
+    proposed: FxHashMap<Coordinate, Coordinate>,
+    seen: FxHashSet<Coordinate>
 }
 
 impl Grove {
-    fn propose(&mut self) -> FxHashMap<Coordinate, Coordinate> {
+    fn propose(&mut self) {
         let starting_dir = self
             .starting_dir
             .next()
             .expect("could not get starting dir");
-
-        let mut proposed: FxHashMap<Coordinate, Coordinate> = FxHashMap::default();
-        let mut seen: FxHashSet<Coordinate> = FxHashSet::default();
 
         for coord in &self.elves {
             if coord.neighbours().iter().any(|n| self.elves.contains(n)) {
@@ -146,32 +145,31 @@ impl Grove {
                         continue;
                     }
 
-                    if seen.contains(&coords[0]) {
-                        proposed.remove(&coords[0]);
+                    if self.seen.contains(&coords[0]) {
+                        self.proposed.remove(&coords[0]);
                         break;
                     }
 
-                    seen.insert(coords[0]);
-                    proposed.insert(coords[0], *coord);
+                    self.seen.insert(coords[0]);
+                    self.proposed.insert(coords[0], *coord);
                     break;
                 }
             }
         }
-
-        proposed
     }
 
-    fn execute(&mut self, proposed: FxHashMap<Coordinate, Coordinate>) {
-        for (to, from) in proposed {
+    fn execute(&mut self) {
+        for (to, from) in self.proposed.drain() {
             self.elves.remove(&from);
             self.elves.insert(to);
         }
+        self.seen.clear();
     }
 
     fn disperse(&mut self, rounds: usize) {
         for _ in 0..rounds {
-            let proposed = self.propose();
-            self.execute(proposed);
+            self.propose();
+            self.execute();
         }
     }
 
@@ -179,13 +177,13 @@ impl Grove {
         let mut rounds = 1;
 
         loop {
-            let proposed = self.propose();
+            self.propose();
 
-            if proposed.is_empty() {
+            if self.proposed.is_empty() {
                 break;
             }
 
-            self.execute(proposed);
+            self.execute();
             rounds += 1;
         }
 
@@ -226,6 +224,8 @@ impl TryFrom<&[String]> for Grove {
         Ok(Self {
             elves,
             starting_dir: StartingDirection::new(),
+            proposed: FxHashMap::default(),
+            seen: FxHashSet::default()
         })
     }
 }
