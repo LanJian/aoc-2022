@@ -128,7 +128,7 @@ pub struct Grove {
     elves: FxHashSet<Coordinate>,
     starting_dir: StartingDirection,
     proposed: FxHashMap<Coordinate, Coordinate>,
-    seen: FxHashSet<Coordinate>
+    seen: FxHashSet<Coordinate>,
 }
 
 impl Grove {
@@ -225,7 +225,7 @@ impl TryFrom<&[String]> for Grove {
             elves,
             starting_dir: StartingDirection::new(),
             proposed: FxHashMap::default(),
-            seen: FxHashSet::default()
+            seen: FxHashSet::default(),
         })
     }
 }
