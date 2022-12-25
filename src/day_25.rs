@@ -103,7 +103,7 @@ pub fn part_one(parsed: &Bob) -> String {
     parsed.fuel_sum().to_string()
 }
 
-pub fn part_two(parsed: &Bob) -> usize {
+pub fn part_two(_: &Bob) -> usize {
     0
 }
 
