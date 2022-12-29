@@ -15,6 +15,7 @@ mod day_12;
 mod day_13;
 mod day_14;
 mod day_15;
+mod day_17;
 mod day_18;
 mod day_20;
 mod day_21;
@@ -39,6 +40,7 @@ criterion_main! {
     day_13::benches,
     day_14::benches,
     day_15::benches,
+    day_17::benches,
     day_18::benches,
     day_20::benches,
     day_21::benches,

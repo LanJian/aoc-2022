@@ -103,7 +103,7 @@ impl Coordinate {
 
 #[derive(Debug, Clone)]
 pub struct Grid<T> {
-    grid: Vec<Vec<T>>,
+    pub grid: Vec<Vec<T>>,
     pub n: usize,
     pub m: usize,
 }
