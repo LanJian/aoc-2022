@@ -103,7 +103,7 @@ impl Coordinate {
 
 #[derive(Debug, Clone)]
 pub struct Grid<T> {
-    grid: Vec<Vec<T>>,
+    pub grid: Vec<Vec<T>>,
     pub n: usize,
     pub m: usize,
 }
@@ -176,10 +176,10 @@ where
         }
     }
 
-    pub fn find_index(&self, item: &T) -> Option<Coordinate> {
+    pub fn find_index(&self, pred: impl Fn(&T) -> bool) -> Option<Coordinate> {
         for i in 0..self.n {
             for j in 0..self.m {
-                if self.grid[i][j] == *item {
+                if pred(&self.grid[i][j]) {
                     return Some(Coordinate(i as isize, j as isize));
                 }
             }
